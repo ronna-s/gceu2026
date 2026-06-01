@@ -1,34 +1,25 @@
 package main
 
 import (
-	"io"
-	"log"
-	"os"
+	"fmt"
+	"strings"
+
+	"github.com/ronna-s/gceu2026/lessons/goroutines/fileservice"
 )
 
 func main() {
-	const dir = "./assets/parts"
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		log.Fatalf("failed to read directory '%s'", dir)
-	}
-	var parts []string
-	for _, e := range entries {
-		func() {
-			f, err := os.Open(e.Name())
-			if err != nil {
-				log.Fatalf("failed to open file '%s'", e.Name())
-			}
-			defer f.Close()
-			b, err := io.ReadAll(f)
-			if err != nil {
-				log.Fatalf("failed to read from file '%s'", e.Name())
-			}
-			parts = append(parts, string(b))
-		}()
-	}
+	fmt.Println(AggergateFile())
 }
+func AggergateFile() string {
+	client := fileservice.NewClient()
+	iter, size := client.Parts()
 
-func ConvertImage() {
+	parts := make([]string, size)
 
+	for part := range iter {
+		idx := int(part[0])
+		parts[idx] = string(part[1:])
+	}
+
+	return strings.Join(parts, "\n")
 }
