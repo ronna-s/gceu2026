@@ -1,15 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileservice"
 )
 
 type Client interface {
+	// GetParts lists the file parts so that they can be fetched individually.
+	// Parts are listed in a random order.
 	GetParts() []*fileservice.Part
+	// GetPart returns the individual part of the file (a slice of bytes) and its index.
 	GetPart(p *fileservice.Part) ([]byte, int)
 }
 
@@ -19,16 +22,16 @@ func main() {
 
 func AggergateFile(client Client) string {
 	list := client.GetParts()
-	out := make([]string, len(list))
+	out := make([][]byte, len(list))
 
 	var wg sync.WaitGroup
 	for _, part := range list {
 		wg.Go(func() {
 			b, idx := client.GetPart(part)
-			out[idx] = string(b)
+			out[idx] = b
 		})
 	}
 	wg.Wait()
 
-	return strings.Join(out, "")
+	return string(bytes.Join(out, nil))
 }

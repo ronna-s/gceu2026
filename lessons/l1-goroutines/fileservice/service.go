@@ -3,6 +3,7 @@ package fileservice
 import (
 	"io/fs"
 	"log"
+	"math/rand"
 	"slices"
 	"time"
 
@@ -30,7 +31,18 @@ func newService() *service {
 		}
 		srv.parts = append(srv.parts, &Part{p: append(b, '\n')})
 	}
+	srv.parts = shuffle(srv.parts)
 	return &srv
+}
+
+func shuffle[T any](src []T) []T {
+	final := make([]T, len(src))
+	perm := rand.Perm(len(src))
+
+	for i, v := range perm {
+		final[v] = src[i]
+	}
+	return final
 }
 
 // GetParts returns a slice of pointers to parts of a file.

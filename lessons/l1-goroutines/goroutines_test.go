@@ -10,6 +10,8 @@ import (
 	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileservice"
 )
 
+var wait = time.Second * 3
+
 const file = "012345"
 
 type FakeClient struct {
@@ -20,7 +22,7 @@ type FakeClient struct {
 func NewFakeClient() *FakeClient {
 	s := make([]*fileservice.Part, len(file))
 	for i := range s {
-		s[i] = &fileservice.Part{}
+		s[len(s)-1-i] = &fileservice.Part{}
 	}
 	return &FakeClient{parts: s}
 }
@@ -35,13 +37,13 @@ func (c FakeClient) GetPart(p *fileservice.Part) ([]byte, int) {
 		c.t.Fatalf("part doesn't exist")
 		return nil, -1
 	}
-	time.Sleep(time.Duration(idx+1) * time.Second)
+	time.Sleep(wait)
 	return []byte{file[idx]}, idx
 }
 
 func TestAggergateFile(t *testing.T) {
 	client := NewFakeClient()
-	expectedWait := time.Second * time.Duration(len(client.GetParts()))
+	expectedWait := wait
 	var (
 		done   bool
 		waited time.Duration

@@ -1,0 +1,9 @@
+FROM golang:1.25-bookworm
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends graphviz ca-certificates \
+	&& rm -rf /var/lib/apt/lists/*
+
+RUN go install golang.org/x/perf/cmd/benchstat@latest
+
+ENV PATH="/go/bin:${PATH}"
