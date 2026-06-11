@@ -7,10 +7,10 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileservice"
+	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/aggregate/fileservice"
 )
 
-var wait = time.Second * 3
+var delay = time.Second
 
 const file = "012345"
 
@@ -37,13 +37,13 @@ func (c FakeClient) GetPart(p *fileservice.Part) ([]byte, int) {
 		c.t.Fatalf("part doesn't exist")
 		return nil, -1
 	}
-	time.Sleep(wait)
+	time.Sleep(delay)
 	return []byte{file[idx]}, idx
 }
 
 func TestAggergateFile(t *testing.T) {
 	client := NewFakeClient()
-	expectedWait := wait
+	expectedWait := delay
 	var (
 		done   bool
 		waited time.Duration

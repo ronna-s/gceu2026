@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileservice"
+	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/aggregate/fileservice"
 )
 
 type Client interface {

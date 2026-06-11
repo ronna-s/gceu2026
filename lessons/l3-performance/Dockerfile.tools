@@ -6,4 +6,8 @@ RUN apt-get update \
 
 RUN go install golang.org/x/perf/cmd/benchstat@latest
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sysstat \
+    && rm -rf /var/lib/apt/lists/*
+    
 ENV PATH="/go/bin:${PATH}"
