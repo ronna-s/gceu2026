@@ -7,7 +7,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/aggregate/fileservice/assets"
+	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileaggregator/fileservice/assets"
 )
 
 type service struct {

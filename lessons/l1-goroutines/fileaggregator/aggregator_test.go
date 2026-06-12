@@ -3,11 +3,12 @@ package main
 import (
 	_ "embed"
 	"slices"
+	"sync/atomic"
 	"testing"
 	"testing/synctest"
 	"time"
 
-	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/aggregate/fileservice"
+	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileaggregator/fileservice"
 )
 
 var delay = time.Second
@@ -45,7 +46,7 @@ func TestAggergateFile(t *testing.T) {
 	client := NewFakeClient()
 	expectedWait := delay
 	var (
-		done   bool
+		done   atomic.Bool
 		waited time.Duration
 		output string
 	)
@@ -53,13 +54,13 @@ func TestAggergateFile(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		go func() {
 			output = AggergateFile(client)
-			done = true
+			done.Store(true)
 		}()
 
-		for !done {
+		for !done.Load() {
 			time.Sleep(time.Second)
-			waited += time.Second
 			synctest.Wait()
+			waited += time.Second
 		}
 	})
 	if output != file {
