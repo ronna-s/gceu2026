@@ -2,14 +2,16 @@ package main
 
 import (
 	"errors"
+	"io"
 	"net"
 	"os"
-	"sync/atomic"
 	"testing"
 	"testing/synctest"
+	"time"
 
 	"github.com/ronna-s/gceu2026/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestServe(t *testing.T) {
@@ -19,56 +21,57 @@ func TestServe(t *testing.T) {
 			listener := mocks.NewMockListener(t)
 			listener.On("Accept").Return((net.Conn)(nil), exampleErr).Once()
 			assert.ErrorIs(t, exampleErr, Serve(listener, nil))
+			synctest.Wait()
+			listener.AssertExpectations(t)
 		})
 	})
 	t.Run("handle succeeds", func(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
-			listener := mocks.NewMockListener(t)
 			conn := mocks.NewMockConn(t)
+			conn.On("Read", mock.Anything).Return(0, io.EOF).Once()
+			listener := mocks.NewMockListener(t)
 			listener.On("Accept").Return(conn, nil).Once()
 			listener.On("Accept").Return((net.Conn)(nil), os.ErrClosed).Once()
-			called := false
-			f := func(c net.Conn) error {
-				assert.Equal(t, conn, c)
-				called = true
+
+			assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
+				conn.Read(nil)
 				return nil
-			}
-			assert.ErrorIs(t, os.ErrClosed, Serve(listener, f))
-			assert.True(t, called)
+			}))
+			synctest.Wait()
+			listener.AssertExpectations(t)
+			conn.AssertExpectations(t)
 		})
 	})
 
 	t.Run("handle fails", func(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
-			listener := mocks.NewMockListener(t)
 			conn := mocks.NewMockConn(t)
+			conn.On("Read", mock.Anything).Return(0, io.EOF).Once()
+			listener := mocks.NewMockListener(t)
 			listener.On("Accept").Return(conn, nil).Once()
 			listener.On("Accept").Return((net.Conn)(nil), os.ErrClosed).Once()
-			called := false
 			assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
-				if c != conn {
-					t.Error("handle expected the original connection")
-				}
-				called = true
+				c.Read(nil)
 				return errors.New("some error")
 			}))
 			synctest.Wait()
-			assert.True(t, called)
 			listener.AssertExpectations(t)
+			conn.AssertExpectations(t)
 		})
 	})
 
 	t.Run("handle fails then succeeds", func(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
-			listener := mocks.NewMockListener(t)
 			conn1 := mocks.NewMockConn(t)
+			conn1.On("Read", mock.Anything).Return(0, io.EOF).Once()
 			conn2 := mocks.NewMockConn(t)
+			conn2.On("Read", mock.Anything).Return(0, io.EOF).Once()
+			listener := mocks.NewMockListener(t)
 			listener.On("Accept").Return(conn1, nil).Once()
 			listener.On("Accept").Return(conn2, nil).Once()
 			listener.On("Accept").Return((net.Conn)(nil), os.ErrClosed).Once()
-			var handleCalled int32
 			assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
-				atomic.AddInt32(&handleCalled, 1)
+				c.Read(nil)
 				if c == conn1 {
 					return errors.New("some error")
 				}
@@ -78,9 +81,63 @@ func TestServe(t *testing.T) {
 				t.Error("unexpected connection received")
 				return nil
 			}))
-			assert.Equal(t, int32(2), handleCalled, "handle was expected to be called twice")
+			synctest.Wait()
 			listener.AssertExpectations(t)
+			conn1.AssertExpectations(t)
+			conn2.AssertExpectations(t)
 		})
 	})
 
+	t.Run("handle both connections takes one second", func(t *testing.T) {
+		synctest.Test(t, func(t *testing.T) {
+			conn1 := mocks.NewMockConn(t)
+			conn1.On("Read", mock.Anything).Run(func(args mock.Arguments) {
+				time.Sleep(time.Second)
+			}).Return(0, io.EOF).Once()
+			conn2 := mocks.NewMockConn(t)
+			conn2.On("Read", mock.Anything).Run(func(args mock.Arguments) {
+				time.Sleep(time.Second)
+			}).Return(0, io.EOF).Once()
+			listener := mocks.NewMockListener(t)
+			listener.On("Accept").Return(conn1, nil).Once()
+			listener.On("Accept").Return(conn2, nil).Once()
+			listener.On("Accept").Return((net.Conn)(nil), os.ErrClosed).Once()
+			go func() {
+				assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
+					c.Read(nil)
+					return nil
+				}))
+			}()
+
+			time.Sleep(time.Second)
+			conn1.AssertExpectations(t)
+			conn2.AssertExpectations(t)
+		})
+	})
+
+	t.Run("waits for in-flight handlers before returning", func(t *testing.T) {
+		synctest.Test(t, func(t *testing.T) {
+			waitCh := make(chan struct{})
+			conn := mocks.NewMockConn(t)
+			listener := mocks.NewMockListener(t)
+			listener.On("Accept").Return(conn, nil).Once()
+			listener.On("Accept").Return((net.Conn)(nil), os.ErrClosed).Once()
+
+			done := false
+			go func() {
+				assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
+					<-waitCh
+					return nil
+				}))
+				done = true
+			}()
+			synctest.Wait()
+			listener.AssertExpectations(t)
+			assert.False(t, done)
+			close(waitCh)
+			synctest.Wait()
+			assert.True(t, done)
+			conn.AssertExpectations(t)
+		})
+	})
 }
