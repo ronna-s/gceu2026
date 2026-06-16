@@ -36,7 +36,7 @@ func main() {
 		conn.Write([]byte(output))
 		conn.Close()
 
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 1)
 		l.Close()
 	}()
 	log.Fatal(Serve(l, HandleConnection))
