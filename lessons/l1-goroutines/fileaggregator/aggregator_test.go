@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 	"slices"
-	"sync/atomic"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -46,22 +45,21 @@ func (c FakeClient) GetPart(p *fileservice.Part) ([]byte, int) {
 func TestAggergateFile(t *testing.T) {
 	client := NewFakeClient()
 	expectedWait := delay
-	var (
-		done   atomic.Bool
-		output string
-	)
+	done := false
+	var output string
 
 	synctest.Test(t, func(t *testing.T) {
 		go func() {
 			ts := time.Now()
 			output = AggergateFile(client)
 			assert.LessOrEqual(t, time.Since(ts), expectedWait, "waited too long...")
-			done.Store(true)
+			done = true
 		}()
 
-		for !done.Load() {
-			time.Sleep(delay)
-			synctest.Wait()
+		time.Sleep(time.Hour)
+		synctest.Wait()
+		if !done {
+			t.Error("waited an hour, but AggergateFile didn't finish :(")
 		}
 	})
 
