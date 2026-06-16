@@ -29,6 +29,7 @@ func TestRateLimiter(t *testing.T) {
 		}
 
 		time.Sleep(interval)
+		synctest.Wait()
 
 		for i := range 10 {
 			if !limiter.Allow() {
