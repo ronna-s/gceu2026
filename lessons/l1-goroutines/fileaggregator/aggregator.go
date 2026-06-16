@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"sync"
 
 	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileaggregator/fileservice"
 )
@@ -21,17 +19,6 @@ func main() {
 }
 
 func AggergateFile(client Client) string {
-	list := client.GetParts()
-	out := make([][]byte, len(list))
-
-	var wg sync.WaitGroup
-	for _, part := range list {
-		wg.Go(func() {
-			b, idx := client.GetPart(part)
-			out[idx] = b
-		})
-	}
-	wg.Wait()
-
-	return string(bytes.Join(out, nil))
+	// your code goes here
+	return ""
 }

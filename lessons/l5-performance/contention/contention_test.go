@@ -10,14 +10,8 @@ func BenchmarkMixed(b *testing.B) {
 
 		b.RunParallel(func(pb *testing.PB) {
 			op := 0
-			for pb.Next() {
-				if op%10 == 0 {
-					i.IncrMutex()
-				} else {
-					_ = i.ReadMutex()
-				}
-				op++
-			}
+			_ = op // remove me...
+			_ = i  // remove me...
 		})
 	})
 
@@ -26,14 +20,8 @@ func BenchmarkMixed(b *testing.B) {
 
 		b.RunParallel(func(pb *testing.PB) {
 			op := 0
-			for pb.Next() {
-				if op%10 == 0 {
-					i.IncrRWMutex()
-				} else {
-					_ = i.ReadRWMutex()
-				}
-				op++
-			}
+			_ = op // remove me...
+			_ = i  // remove me...
 		})
 	})
 	b.Run("atomic", func(b *testing.B) {
@@ -41,14 +29,8 @@ func BenchmarkMixed(b *testing.B) {
 
 		b.RunParallel(func(pb *testing.PB) {
 			op := 0
-			for pb.Next() {
-				if op%10 == 0 {
-					i.IncrAtomic()
-				} else {
-					_ = i.ReadAtomic()
-				}
-				op++
-			}
+			_ = op // remove me...
+			_ = i  // remove me...
 		})
 	})
 }

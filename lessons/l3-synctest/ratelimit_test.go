@@ -11,33 +11,15 @@ func TestRateLimiter(t *testing.T) {
 	interval := time.Second
 	// the rate limiter allows up to maximum maxReqs requests/interval
 	limiter := NewAtomicRateLimiter(maxReqs)
+	_ = limiter
 
 	// test that it doesn't allow more than that, for 2 seconds.
 	synctest.Test(t, func(t *testing.T) {
-		// every time interval add up to maxReqs more requests (refill the quota)
+		// Start must be executed inside the bubble
 		stop := limiter.Start(interval, maxReqs)
 		defer stop()
 
-		synctest.Wait()
-		for i := range 10 {
-			if !limiter.Allow() {
-				t.Errorf("limiter was expected to allow %d requests initially. Attempt: %d", maxReqs, i)
-			}
-		}
-		if limiter.Allow() {
-			t.Errorf("limiter was not expected to allow more requests")
-		}
+		// your code goes here
 
-		time.Sleep(interval)
-		synctest.Wait()
-
-		for i := range 10 {
-			if !limiter.Allow() {
-				t.Errorf("limiter was expected to allow %d requests initially. Attempt: %d", maxReqs, i)
-			}
-		}
-		if limiter.Allow() {
-			t.Errorf("limiter was not expected to allow more requests")
-		}
 	})
 }

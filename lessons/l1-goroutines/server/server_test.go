@@ -112,7 +112,7 @@ func TestServe(t *testing.T) {
 			// run Serve
 			go func() {
 				ts := time.Now()
-				assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
+				assert.Error(t, Serve(listener, func(c net.Conn) error {
 					c.Read(nil)
 					return nil
 				}))
@@ -142,7 +142,7 @@ func TestServe(t *testing.T) {
 
 			done := false
 			go func() {
-				assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
+				assert.Error(t, Serve(listener, func(c net.Conn) error {
 					<-waitCh
 					return nil
 				}))

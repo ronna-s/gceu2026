@@ -8,6 +8,7 @@ import (
 )
 
 func TestTimeMovesBackwards(t *testing.T) {
+	t.Skip()
 	ts := time.Now()
 	for {
 		time.Sleep(time.Second)

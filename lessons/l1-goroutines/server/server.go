@@ -4,25 +4,12 @@ import (
 	"io"
 	"log"
 	"net"
-	"sync"
 	"time"
 )
 
 func Serve(l net.Listener, handle func(net.Conn) error) error {
-	var wg sync.WaitGroup
-	defer wg.Wait()
-
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			return err
-		}
-		wg.Go(func() {
-			if err := handle(conn); err != nil {
-				log.Println(err)
-			}
-		})
-	}
+	// your code goes here
+	return nil
 }
 
 func HandleConnection(conn net.Conn) error {
