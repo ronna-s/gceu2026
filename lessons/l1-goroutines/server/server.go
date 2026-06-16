@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -18,7 +19,7 @@ func HandleConnection(conn net.Conn) error {
 	if err != nil {
 		return err
 	}
-	log.Println(b)
+	fmt.Println(string(b))
 	return nil
 }
 
@@ -28,8 +29,17 @@ func main() {
 		log.Fatal(err)
 	}
 	go func() {
+		conn, err := net.Dial("tcp", l.Addr().String())
+		if err != nil {
+			log.Printf("unexpected error establishing a connection: %s", err.Error())
+		}
+		conn.Write([]byte(output))
+		conn.Close()
+
 		time.Sleep(time.Second * 5)
 		l.Close()
 	}()
 	log.Fatal(Serve(l, HandleConnection))
 }
+
+const output = "        ,_---~~~~~----._\n  _,,_,*^____      _____``*g*\\\"*,\n / __/ /'     ^.  /      \\ ^@q   f\n[  @f | @))    |  | @))   l  0 _/\n \\`/   \\~____ / __ \\_____/    \\\n  |           _l__l_           I\n  }          [______]           I\n  ]            | | |            |\n  ]             ~ ~             |\n  |                            |\n   |                           |"

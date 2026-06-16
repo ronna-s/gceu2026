@@ -4,7 +4,6 @@ Welcome to the GopherCon Europe workshop on Go concurrency.
 
 In this workshop, you’ll work through a series of hands-on exercises covering:
 - goroutines
-- concurrent servers
 - deterministic testing with `testing/synctest`
 - contention and benchmarking
 
@@ -29,7 +28,7 @@ Verify your environment:
 
 ```bash
 go version
-go test ./...
+go test ./... #some tests are expected to fail
 ```
 
 
@@ -51,7 +50,7 @@ The file server is intentionally slow and returns file parts in random order. Yo
 go test ./lessons/l1-goroutines/fileaggregator -run ^TestAggergateFile$
 ```
 
-### Optional: inspect the result
+### Recommended: inspect the result
 
 ```bash
 go run ./lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html
@@ -66,10 +65,10 @@ Implement `Serve` in `lessons/l1-goroutines/server/server.go`.
 
 ### Requirements
 1. Repeatedly call `l.Accept()`.
-2. Stop accepting new connections when `Accept()` returns an error.
-3. Handle each accepted connection concurrently by calling `handle(conn)`.
-4. If `handle(conn)` returns an error, log it.
-5. Do not return from `Serve()` until all accepted connections have finished processing.
+1. Stop accepting new connections when `Accept()` returns an error.
+1. If Accept() returns an error, complete handling all connections, then return.
+1. Handle each accepted connection concurrently by calling `handle(conn)`.
+1. If `handle(conn)` returns an error, log it.
 
 ### Run the test
 
@@ -77,7 +76,13 @@ Implement `Serve` in `lessons/l1-goroutines/server/server.go`.
 go test --race ./lessons/l1-goroutines/server -run ^TestServe$
 ```
 
-## Exercise 3: Test a Rate Limiter with `synctest`
+### Recommended: inspect the result
+
+```bash
+go run ./lessons/l1-goroutines/server/server.go
+```
+
+## Exercise: Test a Rate Limiter with `synctest`
 
 In this exercise, you’ll use `testing/synctest` to write a deterministic test for time-based behavior.
 
