@@ -1,79 +1,123 @@
 # Demystifying Go Concurrency
 
-## Clone the repo: github.com/ronna-s/gceu2026
+Welcome to the GopherCon Europe workshop on Go concurrency.
 
-## Exercise - Aggregate a File:
-Implement the body of function `AggergateFile(client Client) string` in `lessons/l1-goroutines/fileaggregator/aggregator.go`. 
+In this workshop, you’ll work through a series of hands-on exercises covering:
+- goroutines
+- concurrent servers
+- deterministic testing with `testing/synctest`
+- contention and benchmarking
 
-`AggergateFile` is given a Client type that makes requests to a file server (which only serves one html file and is notoriously slow), with two methods:
+## Prerequisites
 
-```go
-type Client interface {
-	GetParts() []*fileservice.Part
-	GetPart(p *fileservice.Part) ([]byte, int)
-}
+Before starting, make sure you have:
+
+- Go `1.26` or newer
+- Git
+- A terminal and editor/IDE of your choice
+
+## Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/ronna-s/gceu2026
+cd gceu2026
 ```
 
-Your task is to aggregate all file parts (the byte slices) concurrently and return a string.
+Verify your environment:
 
-* There’s a test for your convenience that also checks how your application performs. Run it: `go test ./lessons/l1-goroutines/fileaggregator -run ^TestAggergateFile$`
-* When done run `go run ./lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html`
-* Open unknown.html to see the results.
+```bash
+go version
+go test ./...
+```
 
-## Exercise - Implement a Basic server
 
-Implementing a basic server in go is very simple.
+## Exercise: Aggregate a File Concurrently
 
-Implement the function `Serve` in `lessons/l1-goroutines/server/server.go` which takes two parameters: `l net.Listener` that listens for new connections and a `handle func(net.Conn) error` to handle each connection.
+### What you'll do
+Implement `AggergateFile(client Client) string` in `lessons/l1-goroutines/fileaggregator/aggregator.go`.
 
-Requirements:
+The file server is intentionally slow and returns file parts in random order. Your goal is to fetch the parts concurrently, reassemble them in the correct order, and return the final file contents as a string.
 
-In a loop call `l.Accept()` which returns a connection (net.Conn) and an error. The loop should stop when Accept() returns an error.
+### Success criteria
+- all parts are fetched concurrently
+- parts are reassembled in the correct order
+- the provided test passes
 
-For each connection conn call `handle(conn)` concurrently, if it returns an error, log the error.
+### Run the test
 
-`Serve()` must not resume until all accepted connections have been handled.
+```bash
+go test ./lessons/l1-goroutines/fileaggregator -run ^TestAggergateFile$
+```
 
-* There’s a test for your convenience that also checks how your application performs. Run it: 
+### Optional: inspect the result
+
+```bash
+go run ./lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html
+```
+
+Open `unknown.html` in your browser to inspect the reconstructed file.
+
+
+## Exercise: Implement a Basic Concurrent Server
+
+Implement `Serve` in `lessons/l1-goroutines/server/server.go`.
+
+### Requirements
+1. Repeatedly call `l.Accept()`.
+2. Stop accepting new connections when `Accept()` returns an error.
+3. Handle each accepted connection concurrently by calling `handle(conn)`.
+4. If `handle(conn)` returns an error, log it.
+5. Do not return from `Serve()` until all accepted connections have finished processing.
+
+### Run the test
+
 ```bash
 go test --race ./lessons/l1-goroutines/server -run ^TestServe$
 ```
 
-## Exercise - synctest
+## Exercise 3: Test a Rate Limiter with `synctest`
 
-Write a test for an atomic rate limiter (`AtomicRateLimiter` type) in `lessons/l3-synctest/ratelimit_test.go`.
+In this exercise, you’ll use `testing/synctest` to write a deterministic test for time-based behavior.
 
-The `AtomicRateLimiter` has one function that needs testing: `Allow() bool`.
+Write a test for `AtomicRateLimiter` in `lessons/l3-synctest/ratelimit_test.go`.
 
-Test that the limiter doesn't allow more than `maxReqs` per interval (using calls to `Allow() bool`). Run the test for at least two cycles of the time interval.
+### Goal
+Verify that `Allow() bool` does not permit more than `maxReqs` requests per interval, and that the quota refills correctly across at least two intervals.
 
-When ready, run your test.
+### Run the test
+
 ```bash
 go test --race ./lessons/l3-synctest -run ^TestRateLimiter$
 ```
 
-Exercise - Benchmark Parallel Increments
 
-Implement `BenchmarkMixed` in `lessons/l5-performance/contention/contention_test.go`. 
+## Exercise: Benchmark Contention Strategies
 
-Implement the body of `BenchmarkMixed` in `lessons/l5-performance/contention/contention_test.go` to compare the following operations in contention on an int64 value: 
+In this exercise, you’ll compare three approaches to concurrent access to a shared `int64` value:
 
-1. Reading and writing atomically.
-2. Reading and writing using a lock (Mutex type).
-3. Reading and writing using a read/write mutex (RWMutex type).
+1. atomic operations
+2. `sync.Mutex`
+3. `sync.RWMutex`
 
-To do this the contention package has an `Incr` type with the following methods:
+Implement `BenchmarkMixed` in `lessons/l5-performance/contention/contention_test.go`.
 
-```go
-ReadMutex() int64, IncrMutex()
-ReadRWMutex() int64, IncrRWMutex()
-ReadAtomic() int64, IncrAtomic()
-```
+### Goal
+Measure mixed read/write contention where:
+- every 10th operation is a write
+- the other 9 operations are reads
 
-For every 10th operation we will perform an increment, other 9 are reads.
+### Run the benchmark
 
-To see the results run:
 ```bash
 go test ./lessons/l5-performance/contention -run=^$ -bench ^BenchmarkMixed$ -cpu=1,2,4,8,16
 ```
 
+## Need help?
+
+If you get stuck:
+- re-read the exercise requirements carefully
+- run the provided tests frequently
+- use the benchmark/test output as feedback
+- ask a workshop facilitator for a hint before looking for a full solution
