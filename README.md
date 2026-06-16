@@ -14,17 +14,17 @@ type Client interface {
 }
 ```
 
-You task is to aggregate all file parts (the byte slices) concurrently and return a string.
+Your task is to aggregate all file parts (the byte slices) concurrently and return a string.
 
 * There’s a test for your convenience that also checks how your application performs. Run it: `go test github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileaggregator -run ^TestAggergateFile$`
 * When done run `go run lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html`
 * Open unknown.html to see the results.
 
-## Exercise - Implment a Basic server
+## Exercise - Implement a Basic server
 
 Implementing a basic server in go is very simple.
 
-Implement the function `Serve` in `lessons/l1-goroutines/server/server.go` which takes two paramaters: `l net.Listener` that listens for new connections and a `handle func(net.Conn) error` to handle each connection.
+Implement the function `Serve` in `lessons/l1-goroutines/server/server.go` which takes two parameters: `l net.Listener` that listens for new connections and a `handle func(net.Conn) error` to handle each connection.
 
 Requirements:
 
@@ -41,18 +41,18 @@ go test --race github.com/ronna-s/gceu2026/lessons/l1-goroutines/server -run ^Te
 
 ## Exercise - synctest
 
-Write a test for an atomic rate limiter (`AtomicRateLimiter` type) in `lessons/l3-synctest/ratelimit_test.go`
+Write a test for an atomic rate limiter (`AtomicRateLimiter` type) in `lessons/l3-synctest/ratelimit_test.go`.
 
-The `AtomicRateLimiter` has one function that needs testing - `Allow() bool`
+The `AtomicRateLimiter` has one function that needs testing: `Allow() bool`.
 
-Test the limiter doesn't allow more than maxReqs per interval (using calls to `Allow() bool`). Run the test for at least two cycles of the time interval.
+Test that the limiter doesn't allow more than `maxReqs` per interval (using calls to `Allow() bool`). Run the test for at least two cycles of the time interval.
 
 When ready, run your test.
 ```bash
 go test --race github.com/ronna-s/gceu2026/lessons/l3-synctest -run ^TestRateLimiter$
 ```
 
-Excercise - Benchmark Parallel Increments
+Exercise - Benchmark Parallel Increments
 
 Implement `BenchmarkMixed` in `lessons/l5-performance/contention/contention_test.go`. 
 
