@@ -23,9 +23,9 @@ func BenchmarkMixed(b *testing.B) {
 
 	b.Run("rwmutex", func(b *testing.B) {
 		var i Incr
-		op := 0
 
 		b.RunParallel(func(pb *testing.PB) {
+			op := 0
 			for pb.Next() {
 				if op%10 == 0 {
 					i.IncrRWMutex()
@@ -38,9 +38,9 @@ func BenchmarkMixed(b *testing.B) {
 	})
 	b.Run("atomic", func(b *testing.B) {
 		var i Incr
-		op := 0
 
 		b.RunParallel(func(pb *testing.PB) {
+			op := 0
 			for pb.Next() {
 				if op%10 == 0 {
 					i.IncrAtomic()
