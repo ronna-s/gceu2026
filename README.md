@@ -16,8 +16,8 @@ type Client interface {
 
 Your task is to aggregate all file parts (the byte slices) concurrently and return a string.
 
-* There’s a test for your convenience that also checks how your application performs. Run it: `go test github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileaggregator -run ^TestAggergateFile$`
-* When done run `go run lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html`
+* There’s a test for your convenience that also checks how your application performs. Run it: `go test ./lessons/l1-goroutines/fileaggregator -run ^TestAggergateFile$`
+* When done run `go run ./lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html`
 * Open unknown.html to see the results.
 
 ## Exercise - Implement a Basic server
@@ -36,7 +36,7 @@ For each connection conn call `handle(conn)` concurrently, if it returns an erro
 
 * There’s a test for your convenience that also checks how your application performs. Run it: 
 ```bash
-go test --race github.com/ronna-s/gceu2026/lessons/l1-goroutines/server -run ^TestServe$
+go test --race ./lessons/l1-goroutines/server -run ^TestServe$
 ```
 
 ## Exercise - synctest
@@ -49,7 +49,7 @@ Test that the limiter doesn't allow more than `maxReqs` per interval (using call
 
 When ready, run your test.
 ```bash
-go test --race github.com/ronna-s/gceu2026/lessons/l3-synctest -run ^TestRateLimiter$
+go test --race ./lessons/l3-synctest -run ^TestRateLimiter$
 ```
 
 Exercise - Benchmark Parallel Increments
@@ -74,5 +74,6 @@ For every 10th operation we will perform an increment, other 9 are reads.
 
 To see the results run:
 ```bash
-go test github.com/ronna-s/gceu2026/lessons/l5-performance/contention -run=^$ -bench ^BenchmarkMixed$ -cpu=1,2,4,8,16
+go test ./lessons/l5-performance/contention -run=^$ -bench ^BenchmarkMixed$ -cpu=1,2,4,8,16
 ```
+
