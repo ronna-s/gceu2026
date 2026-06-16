@@ -40,5 +40,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	go func() {
+		time.Sleep(time.Second * 5)
+		l.Close()
+	}()
 	log.Fatal(Serve(l, HandleConnection))
 }

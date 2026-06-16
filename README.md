@@ -2,7 +2,7 @@
 
 ## Clone the repo: github.com/ronna-s/gceu2026
 
-## Exercise 1 - Basic Goroutines:
+## Exercise - Basic Goroutines:
 Implement the body of function `AggergateFile(client Client) string` given a client that makes requests to a file server (which only serves one html file and is notoriously slow), with two methods:
 
 ```go
@@ -16,9 +16,19 @@ type Client interface {
 * When done run `go run lessons/l1-goroutines/fileaggregator/aggregator.go > unknown.html`
 * Open unknown.html to see the results.
 
-## Exercise 2 - Implmenting a Basic TCP server
+## Exercise - Implmenting a Basic TCP server
 
-Implementing a basic TCP server in go is very simple.
+Implementing a basic server in go is very simple.
+
+Implement the function `Serve` which takes two paramaters: `l net.Listener` that listens for new connections and a `handle func(net.Conn) error` to handle each connection.
+
+Requirements:
+
+In a loop call `l.Accept()` which returns a connection (net.Conn) and an error. The loop should stop when Accept() returns an error.
+
+For each connection conn call `handle(conn)` concurrently, if it returns an error, log the error.
+
+`Serve()` must not resume until all accepted connections have been handled.
 
  ```
  go test ./... -bench=BenchmarkContendedMutex \

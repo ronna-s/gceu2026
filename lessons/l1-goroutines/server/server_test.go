@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"sync/atomic"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -89,27 +90,43 @@ func TestServe(t *testing.T) {
 	})
 
 	t.Run("handle both connections takes one second", func(t *testing.T) {
+		delay := time.Second
+		var done atomic.Bool
 		synctest.Test(t, func(t *testing.T) {
+			// initialize the connections
 			conn1 := mocks.NewMockConn(t)
 			conn1.On("Read", mock.Anything).Run(func(args mock.Arguments) {
-				time.Sleep(time.Second)
+				time.Sleep(delay)
 			}).Return(0, io.EOF).Once()
 			conn2 := mocks.NewMockConn(t)
 			conn2.On("Read", mock.Anything).Run(func(args mock.Arguments) {
 				time.Sleep(time.Second)
 			}).Return(0, io.EOF).Once()
+
+			// set up the listener to accept both connections
 			listener := mocks.NewMockListener(t)
 			listener.On("Accept").Return(conn1, nil).Once()
 			listener.On("Accept").Return(conn2, nil).Once()
 			listener.On("Accept").Return((net.Conn)(nil), os.ErrClosed).Once()
+
+			// run Serve
 			go func() {
+				ts := time.Now()
 				assert.ErrorIs(t, os.ErrClosed, Serve(listener, func(c net.Conn) error {
 					c.Read(nil)
 					return nil
 				}))
+				assert.LessOrEqual(t, time.Since(ts), delay)
+				done.Store(true)
 			}()
 
-			time.Sleep(time.Second)
+			time.Sleep(time.Hour)
+			synctest.Wait()
+			if !done.Load() {
+				t.Error("waited for Serve to finish for 1 hour!!! Why is it not done yet?")
+			}
+
+			listener.AssertExpectations(t)
 			conn1.AssertExpectations(t)
 			conn2.AssertExpectations(t)
 		})
@@ -132,11 +149,11 @@ func TestServe(t *testing.T) {
 				done = true
 			}()
 			synctest.Wait()
-			listener.AssertExpectations(t)
 			assert.False(t, done)
 			close(waitCh)
 			synctest.Wait()
 			assert.True(t, done)
+			listener.AssertExpectations(t)
 			conn.AssertExpectations(t)
 		})
 	})

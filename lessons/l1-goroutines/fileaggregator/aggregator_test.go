@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ronna-s/gceu2026/lessons/l1-goroutines/fileaggregator/fileservice"
+	"github.com/stretchr/testify/assert"
 )
 
 var delay = time.Second
@@ -47,26 +48,22 @@ func TestAggergateFile(t *testing.T) {
 	expectedWait := delay
 	var (
 		done   atomic.Bool
-		waited time.Duration
 		output string
 	)
 
 	synctest.Test(t, func(t *testing.T) {
 		go func() {
+			ts := time.Now()
 			output = AggergateFile(client)
+			assert.LessOrEqual(t, time.Since(ts), expectedWait, "waited too long...")
 			done.Store(true)
 		}()
 
 		for !done.Load() {
-			time.Sleep(time.Second)
+			time.Sleep(delay)
 			synctest.Wait()
-			waited += time.Second
 		}
 	})
-	if output != file {
-		t.Errorf("Unexpected output from AggergateFile: '%s'", output)
-	}
-	if expectedWait != waited {
-		t.Errorf("Waited an unexpected amount of time. Expected: '%v', Waited: '%v'.", expectedWait, waited)
-	}
+
+	assert.Equal(t, file, output)
 }
