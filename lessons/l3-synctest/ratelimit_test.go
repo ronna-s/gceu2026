@@ -19,7 +19,17 @@ func TestRateLimiter(t *testing.T) {
 		stop := limiter.Start(interval, maxReqs)
 		defer stop()
 
-		// your code goes here
-
+		for range 5 {
+			for range maxReqs {
+				if !limiter.Allow() {
+					t.Error("expected true got false")
+				}
+			}
+			if limiter.Allow() {
+				t.Error("expected false got true")
+			}
+			time.Sleep(interval)
+			synctest.Wait() // ensures that refill happens
+		}
 	})
 }
