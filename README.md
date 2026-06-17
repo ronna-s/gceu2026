@@ -17,9 +17,10 @@ Before starting, make sure you have:
 
 ## Setup
 
-Clone the repository:
+Clone the repositories (we will switch between them during the class):
 
 ```bash
+git clone https://github.com/jba/concurrency-workshop
 git clone https://github.com/ronna-s/gceu2026
 cd gceu2026
 ```
